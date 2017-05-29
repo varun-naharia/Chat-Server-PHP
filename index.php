@@ -39,8 +39,53 @@ $user_colour = array_rand($colours);
 
 <script language="javascript" type="text/javascript">  
 $(document).ready(function(){
+    
+    $("#server").click(function(event) {
+          var url = "function.php?page=server";
+         var command = "";
+         var type = "";
+         if($('#server').html() == "Start")
+            {
+                command = 'php -q server.php > /dev/null 2>&1 & echo $!';
+                type = "start";
+            }
+            else 
+            {
+                command = 'kill '+$("#pid").val();
+                type = "stop";
+            }
+          
+         //alert(command);
+          $.ajax({
+           type: "POST",
+           url: url,
+           dataType:"json",
+           data : {'command':command, 'type':type},
+           success: function(data)
+           {
+               alert(data.command);
+               if(data.status)
+                {
+                    $("#server").html("Stop");
+                    $("#pid").val(data.message);
+                     //create a new WebSocket object.
+	               var wsUri = "ws://localhost:9000/demo/server.php"; 	
+	               websocket = new WebSocket(wsUri);
+                   websocket.onopen = function(ev) { // connection is open 
+                        $('#message_box').append("<div class=\"system_msg\">Connected!</div>"); //notify user
+	               }
+                }
+               else
+                {
+                    $("#server").html("Start");
+                }
+                
+             //$("#message").html(data.message);
+           }
+         }); 
+     });
 	//create a new WebSocket object.
-	var wsUri = "ws://localhost:9000/demo/server.php"; 	
+	var wsUri = "ws://192.168.1.6:9000/demo/server.php"; 	
 	websocket = new WebSocket(wsUri); 
 	
 	websocket.onopen = function(ev) { // connection is open 
@@ -93,7 +138,11 @@ $(document).ready(function(){
 	websocket.onerror	= function(ev){$('#message_box').append("<div class=\"system_error\">Error Occurred - "+ev.data+"</div>");}; 
 	websocket.onclose 	= function(ev){$('#message_box').append("<div class=\"system_msg\">Connection Closed</div>");}; 
 });
+    
+    
 </script>
+<button id="server">Start</button>    
+<input type="hidden" id="pid">
 <div class="chat_wrapper">
 <div class="message_box" id="message_box"></div>
 <div class="panel">
