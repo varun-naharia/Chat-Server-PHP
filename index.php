@@ -39,7 +39,15 @@ $user_colour = array_rand($colours);
 
 <script language="javascript" type="text/javascript">  
 $(document).ready(function(){
-    
+    var pid = localStorage.getItem("pid");
+    if(pid != "null")
+    {
+        $("#server").html("Stop");
+    }
+    else
+    {
+        $("#server").html("Start");
+    }
     $("#server").click(function(event) {
           var url = "function.php?page=server";
          var command = "";
@@ -51,7 +59,8 @@ $(document).ready(function(){
             }
             else 
             {
-                command = 'kill '+$("#pid").val();
+                
+                command = 'kill '+pid;
                 type = "stop";
             }
           
@@ -63,13 +72,14 @@ $(document).ready(function(){
            data : {'command':command, 'type':type},
            success: function(data)
            {
-               alert(data.command);
+               //alert(data.command);
                if(data.status)
                 {
                     $("#server").html("Stop");
                     $("#pid").val(data.message);
+                    localStorage.setItem("pid", data.message);
                      //create a new WebSocket object.
-	               var wsUri = "ws://localhost:9000/demo/server.php"; 	
+	               var wsUri = "ws://<?php echo $_SERVER['SERVER_NAME']; ?>:9000/chatserver/server.php"; 	
 	               websocket = new WebSocket(wsUri);
                    websocket.onopen = function(ev) { // connection is open 
                         $('#message_box').append("<div class=\"system_msg\">Connected!</div>"); //notify user
@@ -77,15 +87,16 @@ $(document).ready(function(){
                 }
                else
                 {
+                    localStorage.setItem("pid", null);
                     $("#server").html("Start");
                 }
-                
+                location.reload();
              //$("#message").html(data.message);
            }
          }); 
      });
 	//create a new WebSocket object.
-	var wsUri = "ws://192.168.1.6:9000/demo/server.php"; 	
+	var wsUri = "ws://<?php echo $_SERVER['SERVER_NAME']; ?>:9000/chatserver/server.php"; 	
 	websocket = new WebSocket(wsUri); 
 	
 	websocket.onopen = function(ev) { // connection is open 
